@@ -1,11 +1,13 @@
+"""Webcam gaze tracker using MediaPipe Tasks Face Landmarker."""
+
 from __future__ import annotations
 
 import argparse
+from collections import deque
 from pathlib import Path
 import time
-from urllib.request import urlopen
-from collections import deque
 from typing import Deque, Optional, Tuple
+from urllib.request import urlopen
 
 import cv2
 import mediapipe as mp
@@ -25,6 +27,7 @@ MODEL_URL = (
 
 
 def draw_calibration_marker(frame, step_name: str) -> None:
+    """Overlay a yellow calibration dot and instruction text onto frame."""
     h, w = frame.shape[:2]
     targets = {
         "center": (int(w * 0.50), int(h * 0.50)),
@@ -48,10 +51,12 @@ def draw_calibration_marker(frame, step_name: str) -> None:
 
 
 def clamp01(value: float) -> float:
+    """Clamp a float value to the range [0, 1]."""
     return max(0.0, min(1.0, value))
 
 
 def post_gaze(endpoint: str, point: Tuple[float, float]) -> None:
+    """POST a normalized gaze point to the web-app API endpoint."""
     try:
         requests.post(
             endpoint,
@@ -63,6 +68,7 @@ def post_gaze(endpoint: str, point: Tuple[float, float]) -> None:
 
 
 def ensure_face_landmarker_model(path: Path) -> Path:
+    """Download face_landmarker.task model if not already present locally."""
     if path.exists():
         return path
 
@@ -73,6 +79,7 @@ def ensure_face_landmarker_model(path: Path) -> Path:
 
 
 def create_face_landmarker(model_path: Path):
+    """Build and return a MediaPipe Tasks FaceLandmarker for still images."""
     options = vision.FaceLandmarkerOptions(
         base_options=BaseOptions(model_asset_path=str(model_path)),
         running_mode=vision.RunningMode.IMAGE,
@@ -82,6 +89,7 @@ def create_face_landmarker(model_path: Path):
 
 
 def main() -> None:
+    """Entry point: run the webcam gaze tracking and calibration loop."""
     parser = argparse.ArgumentParser(description="EyeWrite ML client")
     parser.add_argument("--camera", type=int, default=0)
     parser.add_argument("--api-url", default="http://127.0.0.1:5000/api/gaze")

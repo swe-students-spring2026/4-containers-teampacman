@@ -1,3 +1,5 @@
+"""Gaze feature extraction and simple 5-point screen calibration."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -20,27 +22,34 @@ RIGHT_EYE_BOTTOM = 374
 
 @dataclass
 class FeaturePoint:
+    """Normalized iris-to-eye-corner ratios used as the gaze feature vector."""
+
     x_ratio: float
     y_ratio: float
 
 
 @dataclass
 class ScreenPoint:
+    """Normalized screen coordinates in [0, 1] x [0, 1] space."""
+
     x: float
     y: float
 
 
 def _landmark_xy(landmarks, idx: int) -> np.ndarray:
+    """Return the (x, y) position of a single landmark as a float32 array."""
     point = landmarks[idx]
     return np.array([point.x, point.y], dtype=np.float32)
 
 
 def _mean_landmark_xy(landmarks, indices: List[int]) -> np.ndarray:
+    """Return the centroid of a group of landmarks as a float32 array."""
     points = np.array([_landmark_xy(landmarks, i) for i in indices], dtype=np.float32)
     return np.mean(points, axis=0)
 
 
 def extract_feature_point(landmarks) -> Optional[FeaturePoint]:
+    """Compute a normalized iris-position feature from face landmarks."""
     left_iris = _mean_landmark_xy(landmarks, LEFT_IRIS)
     right_iris = _mean_landmark_xy(landmarks, RIGHT_IRIS)
     left_outer = _landmark_xy(landmarks, LEFT_EYE_OUTER)
@@ -75,6 +84,7 @@ def extract_feature_point(landmarks) -> Optional[FeaturePoint]:
 
 class SimpleCalibrator:
     def __init__(self) -> None:
+        """Initialise empty sample buckets for all five calibration targets."""
         self.samples: Dict[str, List[FeaturePoint]] = {
             "center": [],
             "top_left": [],
@@ -91,12 +101,15 @@ class SimpleCalibrator:
         }
 
     def add_sample(self, key: str, point: FeaturePoint) -> None:
+        """Record one gaze feature sample for the named calibration target."""
         self.samples[key].append(point)
 
     def has_enough_data(self, min_per_target: int = 8) -> bool:
+        """Return True when every target has at least min_per_target samples."""
         return all(len(v) >= min_per_target for v in self.samples.values())
 
     def estimate_screen_point(self, feature: FeaturePoint) -> Optional[ScreenPoint]:
+        """Estimate screen gaze by inverse-distance weighting over calibration targets."""
         weighted_sum = np.zeros(2, dtype=np.float32)
         total_weight = 0.0
 
