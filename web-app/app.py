@@ -7,7 +7,6 @@ import time
 from typing import Dict
 from flask import Flask, jsonify, render_template, request
 
-
 app = Flask(__name__)
 
 _gaze_lock = threading.Lock()
