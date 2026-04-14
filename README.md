@@ -47,11 +47,10 @@ Open [http://127.0.0.1:5000](http://127.0.0.1:5000).
 - Speak button
 - Quick phrases (nice-to-have starter)
 
-Standup reports:
+## Next Iterations
 
-# Standup Report - 14 April 2026
-
-## Adam Shin @aus2005
-- **did** Reviewed and merged PRs, did initial task board setup.
-- **doing** Refining web app.
-- **blockers** Need some details from machie learning to finalize the size of the keyboard.
+- MongoDB persistence for messages, calibration profiles, and phrase sets
+- Blink-to-select confirmation
+- Word prediction/autocomplete
+- Full-screen mode and theme toggles
+- More robust calibration and adaptive drift correction
