@@ -6,6 +6,11 @@ name = "pypi"
 [packages]
 pylint = "*"
 black = "*"
+opencv-python = "*"
+mediapipe = "*"
+numpy = "*"
+requests = "*"
+pymongo = "*"
 
 [dev-packages]
 

@@ -1,0 +1,153 @@
+:root {
+  --bg-a: #f3f8ff;
+  --bg-b: #dceefa;
+  --panel: rgba(255, 255, 255, 0.76);
+  --ink: #123047;
+  --muted: #4f6476;
+  --key: #e3f0fb;
+  --key-border: #abcfe9;
+  --key-hover: #8bc2ea;
+  --accent: #0e7fc4;
+  --danger: #cc4b4b;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+  color: var(--ink);
+  background:
+    radial-gradient(circle at 14% 10%, rgba(255, 255, 255, 0.85) 0, rgba(255, 255, 255, 0) 34%),
+    linear-gradient(145deg, var(--bg-a), var(--bg-b));
+}
+
+.layout {
+  width: min(1200px, 94vw);
+  margin: 1rem auto 2rem;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid rgba(112, 155, 187, 0.36);
+  border-radius: 18px;
+  backdrop-filter: blur(4px);
+  box-shadow: 0 12px 28px rgba(12, 44, 73, 0.09);
+  padding: 1rem;
+}
+
+h1,
+h2 {
+  margin: 0 0 0.5rem;
+}
+
+.hint {
+  margin: 0.2rem 0 0.8rem;
+  color: var(--muted);
+}
+
+#messageBox {
+  width: 100%;
+  font-size: 1.1rem;
+  border-radius: 12px;
+  border: 2px solid #b9d8ee;
+  padding: 0.75rem;
+  resize: vertical;
+  color: #0f2d42;
+  background: rgba(255, 255, 255, 0.95);
+}
+
+.controls,
+.phrases {
+  margin-top: 0.85rem;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(120px, 1fr));
+  gap: 0.65rem;
+}
+
+button {
+  border: 2px solid var(--key-border);
+  background: var(--key);
+  color: var(--ink);
+  border-radius: 14px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  min-height: 54px;
+  cursor: pointer;
+  transition: transform 120ms ease, background 120ms ease;
+}
+
+button:active {
+  transform: scale(0.98);
+}
+
+.speak {
+  border-color: #8ecda7;
+  background: #d8f5e2;
+}
+
+.keyboard {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 0.55rem;
+}
+
+.key {
+  min-height: 68px;
+  font-size: 1.25rem;
+}
+
+.key.wide {
+  grid-column: span 2;
+}
+
+.key.active-gaze {
+  background: var(--key-hover);
+  border-color: var(--accent);
+}
+
+.key.commit {
+  outline: 4px solid rgba(14, 127, 196, 0.36);
+}
+
+#gazeCursor {
+  position: fixed;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 3px solid #0e7fc4;
+  background: rgba(14, 127, 196, 0.2);
+  pointer-events: none;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1000;
+}
+
+@media (max-width: 900px) {
+  .keyboard {
+    grid-template-columns: repeat(6, 1fr);
+  }
+
+  .key {
+    min-height: 62px;
+    font-size: 1.15rem;
+  }
+}
+
+@media (max-width: 620px) {
+  .controls,
+  .phrases {
+    grid-template-columns: 1fr;
+  }
+
+  .keyboard {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
