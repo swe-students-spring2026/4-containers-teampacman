@@ -30,13 +30,13 @@ cd machine-learning-client
 2. Install dependencies:
 
 ```bash
-pipenv install
+python -m pipenv install
 ```
 
 3. Start tracker:
 
 ```bash
-pipenv run python src/tracker.py --api-url http://127.0.0.1:5000/api/gaze
+python -m pipenv run python src/tracker.py --api-url http://127.0.0.1:5000/api/gaze
 ```
 
 4. Calibration flow:
