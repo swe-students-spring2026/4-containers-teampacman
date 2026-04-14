@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import argparse
+from pathlib import Path
 import time
+from urllib.request import urlopen
 from collections import deque
 from typing import Deque, Optional, Tuple
 
@@ -9,20 +11,17 @@ import cv2
 import mediapipe as mp
 import numpy as np
 import requests
+from mediapipe.tasks.python import vision
+from mediapipe.tasks.python.core.base_options import BaseOptions
 
 from gaze_math import FeaturePoint, SimpleCalibrator, extract_feature_point
 
 
-if not hasattr(mp, "solutions"):
-    raise RuntimeError(
-        "This ML client needs MediaPipe FaceMesh via mp.solutions, which is not "
-        "available in the currently installed MediaPipe build. "
-        "Use Python 3.11 and recreate the pipenv environment in "
-        "machine-learning-client."
-    )
-
-mp_face_mesh = mp.solutions.face_mesh
 CALIBRATION_ORDER = ["center", "top_left", "top_right", "bottom_left", "bottom_right"]
+MODEL_URL = (
+    "https://storage.googleapis.com/mediapipe-models/face_landmarker/"
+    "face_landmarker/float16/1/face_landmarker.task"
+)
 
 
 def draw_calibration_marker(frame, step_name: str) -> None:
@@ -63,13 +62,50 @@ def post_gaze(endpoint: str, point: Tuple[float, float]) -> None:
         pass
 
 
+def ensure_face_landmarker_model(path: Path) -> Path:
+    if path.exists():
+        return path
+
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with urlopen(MODEL_URL, timeout=20) as response:
+        path.write_bytes(response.read())
+    return path
+
+
+def create_face_landmarker(model_path: Path):
+    options = vision.FaceLandmarkerOptions(
+        base_options=BaseOptions(model_asset_path=str(model_path)),
+        running_mode=vision.RunningMode.IMAGE,
+        num_faces=1,
+    )
+    return vision.FaceLandmarker.create_from_options(options)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="EyeWrite ML client")
     parser.add_argument("--camera", type=int, default=0)
     parser.add_argument("--api-url", default="http://127.0.0.1:5000/api/gaze")
     parser.add_argument("--send-interval", type=float, default=0.07)
     parser.add_argument("--smooth-window", type=int, default=5)
+    parser.add_argument(
+        "--model-path",
+        default=str(Path(__file__).resolve().parents[1] / "models" / "face_landmarker.task"),
+    )
     args = parser.parse_args()
+
+    if not hasattr(mp, "tasks"):
+        raise RuntimeError(
+            "Installed mediapipe package does not expose the Tasks API. "
+            "Run: python -m pipenv install"
+        )
+
+    try:
+        model_path = ensure_face_landmarker_model(Path(args.model_path))
+    except Exception as exc:
+        raise RuntimeError(
+            "Unable to prepare face_landmarker.task model. "
+            "Check internet access or pass --model-path to a local model file."
+        ) from exc
 
     cap = cv2.VideoCapture(args.camera)
     if not cap.isOpened():
@@ -80,12 +116,7 @@ def main() -> None:
     smoothing: Deque[Tuple[float, float]] = deque(maxlen=max(1, args.smooth_window))
     last_send = 0.0
 
-    with mp_face_mesh.FaceMesh(
-        max_num_faces=1,
-        refine_landmarks=True,
-        min_detection_confidence=0.6,
-        min_tracking_confidence=0.6,
-    ) as face_mesh:
+    with create_face_landmarker(model_path) as face_landmarker:
         while True:
             ok, frame = cap.read()
             if not ok:
@@ -93,11 +124,12 @@ def main() -> None:
 
             frame = cv2.flip(frame, 1)
             rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            results = face_mesh.process(rgb)
+            mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb)
+            result = face_landmarker.detect(mp_image)
 
             feature: Optional[FeaturePoint] = None
-            if results.multi_face_landmarks:
-                landmarks = results.multi_face_landmarks[0].landmark
+            if result.face_landmarks:
+                landmarks = result.face_landmarks[0]
                 feature = extract_feature_point(landmarks)
 
             if calibration_step < len(CALIBRATION_ORDER):
