@@ -19,7 +19,6 @@ from mediapipe.tasks.python.core.base_options import BaseOptions
 
 from gaze_math import FeaturePoint, SimpleCalibrator, extract_feature_point
 
-
 CALIBRATION_ORDER = ["center", "top_left", "top_right", "bottom_left", "bottom_right"]
 MODEL_URL = (
     "https://storage.googleapis.com/mediapipe-models/face_landmarker/"
