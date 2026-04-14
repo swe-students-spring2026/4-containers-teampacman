@@ -5,7 +5,6 @@ from dataclasses import dataclass
 from typing import Dict, List, Optional
 import numpy as np
 
-
 LEFT_IRIS = [468, 469, 470, 471, 472]
 RIGHT_IRIS = [473, 474, 475, 476, 477]
 LEFT_EYE_OUTER = 33
@@ -45,6 +44,7 @@ def _mean_landmark_xy(landmarks, indices: List[int]) -> np.ndarray:
     points = np.array([_landmark_xy(landmarks, i) for i in indices], dtype=np.float32)
     return np.mean(points, axis=0)
 
+
 def _eye_dimensions(landmarks):
     """Return average eye width and height from landmarks."""
     left_outer = _landmark_xy(landmarks, LEFT_EYE_OUTER)
@@ -56,11 +56,16 @@ def _eye_dimensions(landmarks):
     right_top = _landmark_xy(landmarks, RIGHT_EYE_TOP)
     right_bottom = _landmark_xy(landmarks, RIGHT_EYE_BOTTOM)
 
-    width = (np.linalg.norm(left_inner - left_outer)
-             + np.linalg.norm(right_outer - right_inner)) / 2.0
-    height = (np.linalg.norm(left_bottom - left_top)
-              + np.linalg.norm(right_bottom - right_top)) / 2.0
+    width = (
+        np.linalg.norm(left_inner - left_outer)
+        + np.linalg.norm(right_outer - right_inner)
+    ) / 2.0
+    height = (
+        np.linalg.norm(left_bottom - left_top)
+        + np.linalg.norm(right_bottom - right_top)
+    ) / 2.0
     return left_outer, right_outer, width, height
+
 
 def extract_feature_point(landmarks) -> Optional[FeaturePoint]:
     """Compute a normalized iris-position feature from face landmarks."""
@@ -82,6 +87,7 @@ def extract_feature_point(landmarks) -> Optional[FeaturePoint]:
 
 class SimpleCalibrator:
     """Calibrates for targets."""
+
     def __init__(self) -> None:
         """Initialize buckets for the five targets"""
         self.samples: Dict[str, List[FeaturePoint]] = {
@@ -117,7 +123,9 @@ class SimpleCalibrator:
                 continue
             arr = np.array([[p.x_ratio, p.y_ratio] for p in points], dtype=np.float32)
             centroid = np.mean(arr, axis=0)
-            distance = np.linalg.norm(np.array([feature.x_ratio, feature.y_ratio]) - centroid)
+            distance = np.linalg.norm(
+                np.array([feature.x_ratio, feature.y_ratio]) - centroid
+            )
             weight = 1.0 / max(distance, 1e-3)
             target = self.targets[key]
             weighted_sum += weight * np.array([target.x, target.y], dtype=np.float32)
