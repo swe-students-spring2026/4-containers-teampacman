@@ -1,0 +1,133 @@
+:root {
+  --bg: #f3f7fc;
+  --panel: #ffffff;
+  --ink: #16253a;
+  --muted: #5d6f88;
+  --accent: #0a84ff;
+  --accent-soft: #dcecff;
+  --ok: #00a86b;
+  --danger: #b71c1c;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  color: var(--ink);
+  background: radial-gradient(circle at top right, #dff0ff, var(--bg) 45%);
+}
+
+.layout {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 1rem;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 2fr 1fr;
+}
+
+.panel {
+  background: var(--panel);
+  border-radius: 14px;
+  box-shadow: 0 8px 30px rgba(17, 41, 75, 0.08);
+  padding: 1rem;
+}
+
+.top-panel {
+  grid-column: 1 / -1;
+}
+
+.hint {
+  color: var(--muted);
+  margin-top: 0;
+}
+
+#messageBox {
+  width: 100%;
+  resize: vertical;
+  min-height: 110px;
+  border-radius: 10px;
+  border: 1px solid #ced9e8;
+  padding: 0.75rem;
+  font-size: 1.05rem;
+}
+
+.controls,
+.phrases {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.control,
+.key,
+.phrase {
+  border: 1px solid #b8c9de;
+  background: #fff;
+  color: var(--ink);
+  border-radius: 10px;
+  padding: 0.65rem 0.9rem;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.control:hover,
+.key:hover,
+.phrase:hover {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.control.speak {
+  border-color: var(--ok);
+}
+
+.keyboard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.key-row {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.key {
+  min-width: 3.1rem;
+  min-height: 3rem;
+  font-weight: 600;
+}
+
+.dwell {
+  outline: 3px solid var(--accent);
+  background: var(--accent-soft);
+}
+
+#gazeCursor {
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  border: 2px solid var(--danger);
+  position: fixed;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 999;
+  box-shadow: 0 0 0 6px rgba(183, 28, 28, 0.16);
+}
+
+@media (max-width: 900px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  .key {
+    min-width: 2.6rem;
+    min-height: 2.8rem;
+  }
+}
