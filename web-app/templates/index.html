@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EyeWrite MVP</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}" />
+  </head>
+  <body>
+    <main class="layout">
+      <section class="panel top-panel">
+        <h1>EyeWrite</h1>
+        <p class="hint">Stare at a key for ~0.9 seconds to type it.</p>
+        <textarea id="messageBox" rows="4" placeholder="Typed text appears here..."></textarea>
+      </section>
+      <section class="panel phrases-panel">
+        <h2>Quick Phrases</h2>
+        <div class="phrases">
+          <button class="phrase">Hi, nice to meet you.</button>
+          <button class="phrase">Yes</button>
+          <button class="phrase">No</button>
+          <button class="phrase">Can you assist me please?</button>
+        </div>
+      </section>
+      <section class="panel keyboard-panel">
+        <div id="keyboard" class="keyboard"></div>
+      </section>
+    </main>
+
+    <div id="gazeCursor" aria-hidden="true"></div>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+  </body>
+</html>
