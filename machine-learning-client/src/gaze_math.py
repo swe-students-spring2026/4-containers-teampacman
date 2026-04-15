@@ -137,4 +137,3 @@ class SimpleCalibrator:
         result = weighted_sum / total_weight
         result = np.clip(result, 0.0, 1.0)
         return ScreenPoint(x=float(result[0]), y=float(result[1]))
-    
