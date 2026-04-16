@@ -11,21 +11,18 @@
     <main class="layout">
       <section class="panel top-panel">
         <h1>EyeWrite</h1>
-        <textarea id="messageBox" placeholder="Your message will appear here..." readonly></textarea>
-        <p class="hint">Stare at choice for ~0.9 seconds to type it.</p>
-
         <div class="video-container">
             <video id="video" autoplay playsinline></video>
             <canvas id="captureCanvas" style="display:none;"></canvas>
             <div id="gazeCursor" aria-hidden="true"></div>
         </div>
-
       </section>
-
+        <button id="btn-calibrate" style="background-color: yellow; color: black; font-weight: bold;">START CALIBRATION</button>
+        <p class="hint">Stare at choice for ~0.9 seconds to type it.</p>
+        <textarea id="messageBox" placeholder="Your message will appear here..." readonly></textarea>
       <section class="panel phrases-panel">
         <h2>Quick Phrases</h2>
         <div class="phrases">
-          <button class="phrase" id="btn-calibrate" style="background-color: #ffd700; color: black; font-weight: bold;">START CALIBRATION</button>
           <button class="phrase">Hi, nice to meet you.</button>
           <button class="phrase">Yes</button>
           <button class="phrase">No</button>
