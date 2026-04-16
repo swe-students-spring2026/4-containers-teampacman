@@ -2,8 +2,19 @@
 
 from __future__ import annotations
 from dataclasses import dataclass
-from typing import Dict, List, Optional
+from typing import Deque, Dict, List, Optional, Tuple
 import numpy as np
+
+# Minimum samples per calibration target (aligned with web UI and tracker).
+CALIBRATION_MIN_SAMPLES_PER_TARGET = 8
+
+CALIBRATION_ORDER: Tuple[str, ...] = (
+    "center",
+    "top_left",
+    "top_right",
+    "bottom_left",
+    "bottom_right",
+)
 
 LEFT_IRIS = [468, 469, 470, 471, 472]
 RIGHT_IRIS = [473, 474, 475, 476, 477]
@@ -31,6 +42,38 @@ class ScreenPoint:
 
     x: float
     y: float
+
+
+def clamp01(value: float) -> float:
+    """Clamp a float to the closed unit interval [0, 1]."""
+    return max(0.0, min(1.0, value))
+
+
+def smooth_gaze_deque(
+    buffer: Deque[Tuple[float, float]], point: ScreenPoint
+) -> Tuple[float, float]:
+    """Append one screen estimate and return the mean-smoothed (x, y) in [0, 1]."""
+    buffer.append((point.x, point.y))
+    avg_x = clamp01(float(np.mean([p[0] for p in buffer])))
+    avg_y = clamp01(float(np.mean([p[1] for p in buffer])))
+    return avg_x, avg_y
+
+
+def screen_point_l2_error(a: ScreenPoint, b: ScreenPoint) -> float:
+    """Euclidean distance between two normalized screen points."""
+    return float(np.hypot(a.x - b.x, a.y - b.y))
+
+
+def mean_screen_point_error(
+    predictions: List[ScreenPoint], targets: List[ScreenPoint]
+) -> float:
+    """Mean L2 error across paired screen points; lists must match in length."""
+    if len(predictions) != len(targets) or not predictions:
+        raise ValueError("predictions and targets must be non-empty and same length")
+    errors = [
+        screen_point_l2_error(p, t) for p, t in zip(predictions, targets, strict=True)
+    ]
+    return float(np.mean(errors))
 
 
 def _landmark_xy(landmarks, idx: int) -> np.ndarray:
@@ -109,7 +152,9 @@ class SimpleCalibrator:
         """Record one gaze feature sample for the named calibration target."""
         self.samples[key].append(point)
 
-    def has_enough_data(self, min_per_target: int = 8) -> bool:
+    def has_enough_data(
+        self, min_per_target: int = CALIBRATION_MIN_SAMPLES_PER_TARGET
+    ) -> bool:
         """Return True when every target has at least min_per_target samples."""
         return all(len(v) >= min_per_target for v in self.samples.values())
 

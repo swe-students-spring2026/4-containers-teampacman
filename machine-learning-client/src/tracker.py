@@ -20,7 +20,12 @@ from mediapipe.tasks.python.core.base_options import BaseOptions
 from pymongo import MongoClient
 from pymongo.errors import PyMongoError
 
-from gaze_math import SimpleCalibrator, extract_feature_point
+from gaze_math import (
+    ScreenPoint,
+    SimpleCalibrator,
+    extract_feature_point,
+    smooth_gaze_deque,
+)
 
 MODEL_PATH = Path(__file__).resolve().parents[1] / "models" / "face_landmarker.task"
 
@@ -85,16 +90,13 @@ def decode_image(img_string: str) -> Optional[np.ndarray]:
     return cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
 
-def _smooth_gaze(smoothing: Deque, estimated) -> Tuple[float, float]:
+def _smooth_gaze(smoothing: Deque, estimated: ScreenPoint) -> Tuple[float, float]:
     """Append estimate to smoothing buffer and return clamped average."""
-    smoothing.append((estimated.x, estimated.y))
-    avg_x = float(np.clip(np.mean([p[0] for p in smoothing]), 0.0, 1.0))
-    avg_y = float(np.clip(np.mean([p[1] for p in smoothing]), 0.0, 1.0))
-    return avg_x, avg_y
+    return smooth_gaze_deque(smoothing, estimated)
 
 
 @app.route("/process", methods=["POST"])
-def process():
+def process():  # pylint: disable=too-many-return-statements
     """Process a single frame and return the estimated gaze point."""
     data = request.json
     if not data or "image" not in data:
