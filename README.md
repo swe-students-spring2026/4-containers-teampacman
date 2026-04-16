@@ -1,5 +1,5 @@
+[![Lint-free](https://github.com/swe-students-spring2026/4-containers-teampacman/actions/workflows/lint.yml/badge.svg)](https://github.com/swe-students-spring2026/4-containers-teampacman/actions/workflows/lint.yml)
 [![Machine learning client tests](https://github.com/swe-students-spring2026/4-containers-teampacman/actions/workflows/machine-learning-client.yml/badge.svg)](https://github.com/swe-students-spring2026/4-containers-teampacman/actions/workflows/machine-learning-client.yml)
-[![Web app tests](https://github.com/swe-students-spring2026/4-containers-teampacman/actions/workflows/web-app.yml/badge.svg)](https://github.com/swe-students-spring2026/4-containers-teampacman/actions/workflows/web-app.yml)
 
 # EyeWrite MVP (Containerized App Exercise)
 
@@ -15,7 +15,6 @@ All three parts are wired in `docker-compose.yml` (MongoDB, `web-app` on host po
 - `machine-learning-client/src/tracker.py`: Flask service for frame processing and Mongo inserts
 - `machine-learning-client/src/gaze_math.py`: landmarks → screen mapping, smoothing, calibration helpers
 - `web-app/app.py`: Flask routes (`/`, `/api/process_frame`, `/api/calibrate`, etc.)
-- `web-app/tests/`: `pytest` + `pytest-flask` tests (CI: `web-app.yml`)
 - `web-app/templates/index.html`: typing UI
 - `web-app/static/js/app.js`: camera, calibration, gaze loop, dwell, phrases
 - `web-app/static/css/styles.css`: layout and keyboard styling
@@ -88,13 +87,6 @@ cd machine-learning-client
 pipenv sync --dev && pipenv run pytest
 ```
 
-**Web app tests** (`pytest` + `pytest-flask`, coverage ≥ 80%):
-
-```bash
-cd web-app
-pipenv sync --dev && pipenv run pytest
-```
-
 Synthetic calibration check (no camera): `pipenv run python scripts/evaluate_calibration.py`
 
 Standup reports (full reports are posted to the team channel; below matches that layout):
@@ -107,12 +99,12 @@ Standup reports (full reports are posted to the team channel; below matches that
 - **blockers**: None.
 
 ## Angelina Wu @TangelinaWu
-- **did**: EyeWrite scope, reviews, ML + web coordination.
+- **did**: EyeWrite scope, reviews, ML + web coordination. 
 - **doing**: Refine ML client and web app behavior.
 - **blockers**: None.
 
 ## Han Xiao @vick12333
-- **did**: ML accuracy experiments, `gaze_math` and tracker work.
+- **did**: ML accuracy experiments, `gaze_math` and tracker work Add web-app pytest.
 - **doing**: Continue calibration / smoothing improvements.
 - **blockers**: None.
 
