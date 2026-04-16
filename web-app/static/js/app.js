@@ -16,7 +16,17 @@ let committedOnCurrent = false;
 
 const CALIBRATION_ORDER = ["center", "top_left", "top_right", "bottom_left", "bottom_right"];
 
+const keys = [
+  ..."ABCDEFGHIJKLMNOPQRSTUVWXYZ".split(""),
+  "SPACE",
+  "BACKSPACE",
+];
+const keyboardRoot = document.getElementById("keyboard");
+
 function renderKeyboard() {
+  if (!keyboardRoot) {
+    return;
+  }
   keys.forEach((key) => {
     const button = document.createElement("button");
     button.className = "key";
@@ -69,7 +79,7 @@ function updateCalibrationUI(){
   dot.style.left = TARGETS[stepName].left;
   dot.style.top = TARGETS[stepName].top;
 
-  document.getElementById("calib-text").innerText = `Look at the yellow dot: ${stepName}. Press SPACE to sample.}`;
+  document.getElementById("calib-text").innerText = `Look at the yellow dot: ${stepName}. Press SPACE to sample.`;
   document.getElementById("calib-progress").innerText = `Samples: ${samplesCollected} / 8`
 }
 
@@ -219,5 +229,6 @@ async function gazeLoop() {
 }
 
 
-startCamera(); 
+renderKeyboard();
+startCamera();
 gazeLoop();
