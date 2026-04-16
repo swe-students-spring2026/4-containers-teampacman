@@ -16,6 +16,7 @@ services:
     environment:
       - FLASK_HOST=0.0.0.0 
       - ML_CLIENT_URL=http://ml-client:5002/process
+      - MONGO_URI=mongodb://mongodb:27017/
     depends_on:
       - mongodb
       - ml-client

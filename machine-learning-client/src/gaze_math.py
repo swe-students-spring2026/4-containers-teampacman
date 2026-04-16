@@ -9,10 +9,14 @@ import numpy as np
 CALIBRATION_MIN_SAMPLES_PER_TARGET = 8
 
 CALIBRATION_ORDER: Tuple[str, ...] = (
-    "center",
     "top_left",
+    "top_center",
     "top_right",
+    "middle_left",
+    "center",
+    "middle_right",
     "bottom_left",
+    "bottom_center",
     "bottom_right",
 )
 
@@ -132,19 +136,27 @@ class SimpleCalibrator:
     """Calibrates for targets."""
 
     def __init__(self) -> None:
-        """Initialize buckets for the five targets"""
+        """Initialize buckets for the nine targets"""
         self.samples: Dict[str, List[FeaturePoint]] = {
-            "center": [],
             "top_left": [],
+            "top_center": [],
             "top_right": [],
+            "middle_left": [],
+            "center": [],
+            "middle_right": [],
             "bottom_left": [],
+            "bottom_center": [],
             "bottom_right": [],
         }
         self.targets: Dict[str, ScreenPoint] = {
-            "center": ScreenPoint(0.50, 0.50),
             "top_left": ScreenPoint(0.08, 0.10),
+            "top_center": ScreenPoint(0.50, 0.10),
             "top_right": ScreenPoint(0.92, 0.10),
+            "middle_left": ScreenPoint(0.08, 0.50),
+            "center": ScreenPoint(0.50, 0.50),
+            "middle_right": ScreenPoint(0.92, 0.50),
             "bottom_left": ScreenPoint(0.08, 0.90),
+            "bottom_center": ScreenPoint(0.50, 0.90),
             "bottom_right": ScreenPoint(0.92, 0.90),
         }
 
@@ -167,10 +179,13 @@ class SimpleCalibrator:
             if not points:
                 continue
             arr = np.array([[p.x_ratio, p.y_ratio] for p in points], dtype=np.float32)
+
             centroid = np.mean(arr, axis=0)
+
             distance = np.linalg.norm(
                 np.array([feature.x_ratio, feature.y_ratio]) - centroid
             )
+
             weight = 1.0 / (max(distance, 1e-4) ** 2)
             target = self.targets[key]
             weighted_sum += weight * np.array([target.x, target.y], dtype=np.float32)

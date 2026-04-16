@@ -25,7 +25,7 @@ All three parts are wired in `docker-compose.yml` (MongoDB, `web-app` on host po
 - [Angelina Wu](https://github.com/TangelinaWu)
 - [Adam Shin](https://github.com/aus2005)
 - [Han Xiao](https://github.com/vick12333)
-- Alejandro
+- [Alejandro Fiestas](https://github.com/avf8449)
 - Wonden
 
 ##  How to run
@@ -76,7 +76,6 @@ Open [http://127.0.0.1:5000](http://127.0.0.1:5000).
 - Webcam feed and frame streaming to the ML service
 - Eye / iris landmarks and gaze estimation
 - Five-point calibration and gaze-to-screen mapping
-- Large on-screen keyboard with dwell typing (~0.9s)
 - Text entry, space / backspace / clear, quick phrases
 - Optional persistence of gaze metadata in MongoDB (`eyewrite_db.gaze_data`)
 

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gaze Data Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Gaze Data Dashboard</h1>
+        <div class="nav">
+            <a href="/">&larr; Back to main screen</a>
+        </div>
+
+        <h2>Screen Gaze Data Visualizer</h2>
+        <div class="heatmap-box">
+            {% for point in gaze_data %}
+            <div class="gaze-point" 
+                style="--gaze-x: {{ point.x * 100 }}%; --gaze-y: {{ point.y * 100 }}%;">
+            </div>
+            {% endfor %}
+        </div>
+
+        <h2>Recent Gaze Data Table</h2>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>Timestamp (Raw)</th>
+                    <th>X Coordinate</th>
+                    <th>Y Coordinate</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for point in gaze_data %}
+                <tr>
+                    <td>{{ point.readable_time }}</td> 
+                    <td>{{ point.x | round(4) }}</td>
+                    <td>{{ point.y | round(4) }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="3">No data recorded yet.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>
