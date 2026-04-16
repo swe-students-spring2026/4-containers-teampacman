@@ -9,13 +9,13 @@ const ctx = canvas.getContext("2d");
 const SEND_INTERVAL_MS = 100;
 const DWELL_MS = 900;
 const GAZE_POLL_MS = 65;
+const MAX_SAMPLES = 8;
 
 let currentTarget = null;
 let targetStart = 0;
 let committedOnCurrent = false;
 
-const CALIBRATION_ORDER = ["center", "top_left", "top_right", "bottom_left", "bottom_right"];
-
+const CALIBRATION_ORDER = ["top_left", "top_center", "top_right", "middle_left", "center", "middle_right","bottom_left", "bottom_center", "bottom_right"];
 const keys = [
   ..."ABCDEFGHIJKLMNOPQRSTUVWXYZ".split(""),
   "SPACE",
@@ -42,11 +42,15 @@ function renderKeyboard() {
 }
 
 const TARGETS = {
-    "center": { left: "50%", top: "50%" },
-    "top_left": { left: "8%", top: "10%" },
-    "top_right": { left: "92%", top: "10%" },
-    "bottom_left": { left: "8%", top: "90%" },
-    "bottom_right": { left: "92%", top: "90%" }
+  "top_left": { left: "8%", top: "10%" },
+  "top_center": { left: "50%", top: "10%" },
+  "top_right": { left: "92%", top: "10%" },
+  "middle_left": { left: "8%", top: "50%" },
+  "center": { left: "50%", top: "50%" },
+  "middle_right": { left: "92%", top: "50%" },
+  "bottom_left": { left: "8%", top: "90%" },
+  "bottom_center": { left: "50%", top: "90%" },
+  "bottom_right": { left: "92%", top: "90%" }
 };
 
 let calibStep = 0;
@@ -69,15 +73,24 @@ function updateCalibrationUI(){
     document.getElementById("calibration-overlay").style.display = "none";
     isCalibrating = false;
     alert("Calibration complete!");
+    document.getElementById("btn-calibrate").innerText = "RE-CALIBRATE";
     return;
 
   }
+  
 
   const stepName = CALIBRATION_ORDER[calibStep];
   const dot = document.getElementById("calib-dot")
 
   dot.style.left = TARGETS[stepName].left;
   dot.style.top = TARGETS[stepName].top;
+
+  const progressRatio = samplesCollected / MAX_SAMPLES;
+
+  const currentScale = 1.0 - (progressRatio * 0.75);
+
+  dot.style.transform = `translate(-50%, -50%) scale(${currentScale})`;
+  dot.style.transition = "transform 0.1s ease-out"; 
 
   document.getElementById("calib-text").innerText = `Look at the yellow dot: ${stepName}. Press SPACE to sample.`;
   document.getElementById("calib-progress").innerText = `Samples: ${samplesCollected} / 8`
@@ -112,7 +125,7 @@ async function sendCalibrationSample(){
       if (data.status === "success"){
         samplesCollected = data.sample_count || data.samples;
 
-        if (samplesCollected >= 8){
+        if (samplesCollected >= MAX_SAMPLES){
           calibStep ++;
           samplesCollected = 0;
         }
