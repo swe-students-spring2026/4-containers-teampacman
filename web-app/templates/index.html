@@ -6,28 +6,40 @@
     <title>EyeWrite MVP</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}" />
   </head>
+
   <body>
     <main class="layout">
       <section class="panel top-panel">
         <h1>EyeWrite</h1>
-        <p class="hint">Stare at a key for ~0.9 seconds to type it.</p>
-        <textarea id="messageBox" rows="4" placeholder="Typed text appears here..."></textarea>
+        <textarea id="messageBox" placeholder="Your message will appear here..." readonly></textarea>
+        <p class="hint">Stare at choice for ~0.9 seconds to type it.</p>
+
+        <div class="video-container">
+            <video id="video" autoplay playsinline></video>
+            <canvas id="captureCanvas" style="display:none;"></canvas>
+            <div id="gazeCursor" aria-hidden="true"></div>
+        </div>
+
       </section>
+
       <section class="panel phrases-panel">
         <h2>Quick Phrases</h2>
         <div class="phrases">
+          <button class="phrase" id="btn-calibrate" style="background-color: #ffd700; color: black; font-weight: bold;">START CALIBRATION</button>
           <button class="phrase">Hi, nice to meet you.</button>
           <button class="phrase">Yes</button>
           <button class="phrase">No</button>
           <button class="phrase">Can you assist me please?</button>
         </div>
       </section>
-      <section class="panel keyboard-panel">
-        <div id="keyboard" class="keyboard"></div>
-      </section>
-    </main>
 
-    <div id="gazeCursor" aria-hidden="true"></div>
-    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+      <div id="calibration-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.9); z-index: 1000;">
+        <p id="calib-text" style="color: white; text-align: center; margin-top: 40px; font-size: 24px;">Look at the yellow dot. Press SPACE to sample.</p>
+        <p id="calib-progress" style="color: #00ff00; text-align: center; font-size: 18px;">Samples: 0 / 8</p>
+        <div id="calib-dot" style="position: absolute; width: 36px; height: 36px; background: yellow; border-radius: 50%; transform: translate(-50%, -50%);"></div>
+      </div>
+      
+    </main>
+    <script src="/static/js/app.js"></script>
   </body>
 </html>

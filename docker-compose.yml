@@ -1,0 +1,33 @@
+version: "3.8"
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb
+    ports:
+      - 27017:27017
+
+  web-app:
+    build: ./web-app
+    container_name: web-app
+    ports:
+      - "5001:5000"
+
+    # Tells flask to listen to the network interfaces inside the container. 
+    environment:
+      - FLASK_HOST=0.0.0.0 
+      - ML_CLIENT_URL=http://ml-client:5002/process
+    depends_on:
+      - mongodb
+      - ml-client
+
+  ml-client:
+    build: ./machine-learning-client
+    container_name: ml-client
+    image: eyewrite-ml
+    environment:
+      - MONGO_URI=mongodb://mongodb:27017/
+    depends_on:
+      - mongodb
+    ports:
+      - "5002:5002"
+

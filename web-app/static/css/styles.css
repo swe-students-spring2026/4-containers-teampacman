@@ -63,6 +63,19 @@ h2 {
   background: rgba(255, 255, 255, 0.95);
 }
 
+#video {
+    width: 100%;
+    max-width: 600px;
+    border: 3px solid #444;
+    border-radius: 8px;
+    transform: scaleX(-1);
+    background-color: #000; 
+  }
+
+  #canvas {
+    display: none;
+  }
+
 .controls,
 .phrases {
   margin-top: 0.85rem;
@@ -124,6 +137,7 @@ button:active {
   border: 3px solid #0e7fc4;
   background: rgba(14, 127, 196, 0.2);
   pointer-events: none;
+  transform: translate(-50%, -50%);
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);

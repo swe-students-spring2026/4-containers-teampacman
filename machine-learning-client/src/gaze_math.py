@@ -126,7 +126,7 @@ class SimpleCalibrator:
             distance = np.linalg.norm(
                 np.array([feature.x_ratio, feature.y_ratio]) - centroid
             )
-            weight = 1.0 / max(distance, 1e-3)
+            weight = 1.0 / (max(distance, 1e-4) ** 2)
             target = self.targets[key]
             weighted_sum += weight * np.array([target.x, target.y], dtype=np.float32)
             total_weight += weight
