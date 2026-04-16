@@ -1,81 +1,169 @@
-const keyboardRoot = document.getElementById("keyboard");
 const messageBox = document.getElementById("messageBox");
 const gazeCursor = document.getElementById("gazeCursor");
+const canvas = document.getElementById("captureCanvas");
+const video = document.getElementById("video");
+const ctx = canvas.getContext("2d");
 
-const keys = [
-  ..."ABCDEFGHIJKLMNOPQRSTUVWXYZ".split(""),
-  "SPACE",
-  "BACKSPACE",
-];
 
+// approx 10 fps sent to the backend
+const SEND_INTERVAL_MS = 100;
 const DWELL_MS = 900;
 const GAZE_POLL_MS = 65;
+const MAX_SAMPLES = 8;
 
 let currentTarget = null;
 let targetStart = 0;
 let committedOnCurrent = false;
 
+const CALIBRATION_ORDER = ["top_left", "top_center", "top_right", "middle_left", "center", "middle_right","bottom_left", "bottom_center", "bottom_right"];
+const keys = [
+  ..."ABCDEFGHIJKLMNOPQRSTUVWXYZ".split(""),
+  "SPACE",
+  "BACKSPACE",
+];
+const keyboardRoot = document.getElementById("keyboard");
+
 function renderKeyboard() {
-  keys.forEach((key)=> {
-    const button = document.createElement('button');
-    button.className = 'key';
-    button.dataset.key = label;
-    button.textContent = label;
-    if(label === "Space") {
-      button.classList.add('wide');
+  if (!keyboardRoot) {
+    return;
+  }
+  keys.forEach((key) => {
+    const button = document.createElement("button");
+    button.className = "key";
+    button.dataset.key = key;
+    button.textContent = key;
+
+    if (key === "SPACE") {
+      button.classList.add("wide");
     }
+
     keyboardRoot.appendChild(button);
   });
 }
 
-function typeKey(label) {
-  if (label === "BACKSPACE") {
-    messageBox.value = messageBox.value.slice(0, -1);
+const TARGETS = {
+  "top_left": { left: "8%", top: "10%" },
+  "top_center": { left: "50%", top: "10%" },
+  "top_right": { left: "92%", top: "10%" },
+  "middle_left": { left: "8%", top: "50%" },
+  "center": { left: "50%", top: "50%" },
+  "middle_right": { left: "92%", top: "50%" },
+  "bottom_left": { left: "8%", top: "90%" },
+  "bottom_center": { left: "50%", top: "90%" },
+  "bottom_right": { left: "92%", top: "90%" }
+};
+
+let calibStep = 0;
+let isCalibrating = false;
+let samplesCollected = 0;
+
+
+
+document.getElementById("btn-calibrate")?.addEventListener("click", () => {
+  isCalibrating = true;
+  samplesCollected = 0;
+  calibStep = 0;
+  document.getElementById("calibration-overlay").style.display = "block";
+  updateCalibrationUI();
+});
+
+function updateCalibrationUI(){
+  // Check if completed like the previous calibration version
+  if(calibStep >= CALIBRATION_ORDER.length){
+    document.getElementById("calibration-overlay").style.display = "none";
+    isCalibrating = false;
+    alert("Calibration complete!");
+    document.getElementById("btn-calibrate").innerText = "RE-CALIBRATE";
     return;
+
   }
-  if (label === "SPACE") {
-    messageBox.value += " ";
-    return;
-  }
-  messageBox.value += label;
+  
+
+  const stepName = CALIBRATION_ORDER[calibStep];
+  const dot = document.getElementById("calib-dot")
+
+  dot.style.left = TARGETS[stepName].left;
+  dot.style.top = TARGETS[stepName].top;
+
+  const progressRatio = samplesCollected / MAX_SAMPLES;
+
+  const currentScale = 1.0 - (progressRatio * 0.75);
+
+  dot.style.transform = `translate(-50%, -50%) scale(${currentScale})`;
+  dot.style.transition = "transform 0.1s ease-out"; 
+
+  document.getElementById("calib-text").innerText = `Look at the yellow dot: ${stepName}. Press SPACE to sample.`;
+  document.getElementById("calib-progress").innerText = `Samples: ${samplesCollected} / 8`
 }
 
-function applyAction(action) {
-  if (action === "SPACE") {
-    messageBox.value += " ";
-  } else if (action === "BACKSPACE") {
-    messageBox.value = messageBox.value.slice(0, -1);
-  } else if (action === "CLEAR") {
-    messageBox.value = "";
+window.addEventListener("keydown", async (e) => {
+  if (isCalibrating && e.code === "Space") {
+    e.preventDefault();
+    await sendCalibrationSample();
   }
-}
 
-async function fetchGaze() {
+});
+
+async function sendCalibrationSample(){
+  if (!video.videoWidth) return;
+  canvas.width = video.videoWidth
+  canvas.height = video.videoHeight
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
+  // reducing the file size for faster processing
+  const img = canvas.toDataURL("image/jpeg", 0.6).split(",")[1];
+  const targetName = CALIBRATION_ORDER[calibStep]
+
   try {
-    const res = await fetch("/api/gaze", { cache: "no-store" });
-    if (!res.ok) {
-      return null;
+    const res = await fetch("/api/calibrate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ image: img, target: targetName })
+    });
+
+    if(res.ok) {
+      const data = await res.json();
+      if (data.status === "success"){
+        samplesCollected = data.sample_count || data.samples;
+
+        if (samplesCollected >= MAX_SAMPLES){
+          calibStep ++;
+          samplesCollected = 0;
+        }
+        updateCalibrationUI()
+      }
+    } else {
+      const errData = await res.json();
+      console.warn("Calibration sample rejected:", errData.error);
     }
-    return await res.json();
-  } catch {
-    return null;
+  } catch (err){
+    console.error("error sending calibration frame:", err);
+  }
+
+
+}
+
+async function startCamera() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ 
+      video: {width: 1280, height: 720},
+      audio: false
+    });
+
+    video.srcObject = stream;
+  } catch (err) {
+    console.error("Error accessing camera:", err);
+    alert("Camera access is required for tracking.");
   }
 }
 
-function updateCursor(normalized) {
-  const x = Math.max(0, Math.min(1, normalized.x));
-  const y = Math.max(0, Math.min(1, normalized.y));
-  const px = x * window.innerWidth;
-  const py = y * window.innerHeight;
 
+
+function updateCursor(x, y) {
+  const px = Math.max(0, Math.min(1, x)) * window.innerWidth;
+  const py = Math.max(0, Math.min(1, y)) * window.innerHeight;
+  
   gazeCursor.style.left = `${px}px`;
   gazeCursor.style.top = `${py}px`;
-}
-
-function clearHighlights() {
-  document.querySelectorAll(".key.active-gaze, .key.commit").forEach((node) => {
-    node.classList.remove("active-gaze", "commit");
-  });
 }
 
 function processDwellTarget(targetNode) {
@@ -83,9 +171,14 @@ function processDwellTarget(targetNode) {
 
   if (targetNode !== currentTarget) {
     committedOnCurrent = false;
+
+    if (currentTarget) {
+        currentTarget.classList.remove("active-gaze");
+    }
+
     currentTarget = targetNode;
     targetStart = now;
-    clearHighlights();
+    
     if (targetNode) {
       targetNode.classList.add("active-gaze");
     }
@@ -100,43 +193,55 @@ function processDwellTarget(targetNode) {
   if (elapsed >= DWELL_MS) {
     committedOnCurrent = true;
     targetNode.classList.add("commit");
-    const label = targetNode.dataset.key;
-    typeKey(label);
+    const label = targetNode.textContent
+    messageBox.value = label;
     setTimeout(() => targetNode.classList.remove("commit"), 260);
   }
 }
 
+
 async function gazeLoop() {
-  const gaze = await fetchGaze();
-  if (!gaze) {
+  if (!video.videoWidth) {
+    setTimeout(gazeLoop, SEND_INTERVAL_MS);
     return;
   }
 
-  updateCursor(gaze);
-  const px = gaze.x * window.innerWidth;
-  const py = gaze.y * window.innerHeight;
-  const hovered = document.elementFromPoint(px, py);
-  const keyNode = hovered && hovered.classList.contains("key") ? hovered : null;
-  processDwellTarget(keyNode);
-}
+  canvas.width = video.videoWidth
+  canvas.height = video.videoHeight
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
 
-function wireControls() {
-  document.querySelectorAll(".control[data-action]").forEach((button) => {
-    button.addEventListener("click", () => {
-      applyAction(button.dataset.action);
+  const dataUrl = canvas.toDataURL();
+  const img = canvas.toDataURL("image/jpeg", 0.6).split(",")[1]; // Changed from default (PNG) to JPEG
+
+  try {
+    const res = await fetch("/api/process_frame", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ image: img })
     });
-  });
 
-  document.querySelectorAll(".phrase").forEach((button) => {
-    button.addEventListener("click", () => {
-      if (messageBox.value && !messageBox.value.endsWith(" ")) {
-        messageBox.value += " ";
+    if (res.ok) {
+      const data = await res.json();
+      if (data.x !== undefined && data.y !== undefined) {
+        updateCursor(data.x, data.y);
+        const element = document.elementFromPoint(
+            data.x * window.innerWidth, 
+            data.y * window.innerHeight
+        );
+        processDwellTarget(element?.closest(".phrase"));
       }
-      messageBox.value += button.textContent;
-    });
-  });
+    }
+  } catch (err) {
+    console.error("Error sending frame:", err);
+  }
+
+  setTimeout(gazeLoop, SEND_INTERVAL_MS);
+
+
+
 }
+
 
 renderKeyboard();
-wireControls();
-setInterval(gazeLoop, GAZE_POLL_MS);
+startCamera();
+gazeLoop();

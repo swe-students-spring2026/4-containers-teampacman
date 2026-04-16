@@ -1,55 +1,97 @@
-![Lint-free](https://github.com/nyu-software-engineering/containerized-app-exercise/actions/workflows/lint.yml/badge.svg)
+[![Lint-free](https://github.com/swe-students-spring2026/4-containers-teampacman/actions/workflows/lint.yml/badge.svg)](https://github.com/swe-students-spring2026/4-containers-teampacman/actions/workflows/lint.yml)
+[![Machine learning client tests](https://github.com/swe-students-spring2026/4-containers-teampacman/actions/workflows/machine-learning-client.yml/badge.svg)](https://github.com/swe-students-spring2026/4-containers-teampacman/actions/workflows/machine-learning-client.yml)
 
 # EyeWrite MVP (Containerized App Exercise)
 
-This repository now contains an EyeWrite MVP split into two services:
+This repository contains an EyeWrite MVP split into two services plus MongoDB (via Docker):
 
-- `machine-learning-client/`: webcam + eye tracking + calibration + gaze sending
-- `web-app/`: Flask UI + large keyboard + dwell typing + message + speech
+- `machine-learning-client/`: MediaPipe gaze tracking, calibration math (`gaze_math`), REST `/process` and `/calibrate`, optional writes to MongoDB
+- `web-app/`: Flask UI, webcam, five-point calibration, gaze cursor, dwell typing, quick phrases
 
-## Current Structure
+All three parts are wired in `docker-compose.yml` (MongoDB, `web-app` on host port **5001**, `ml-client` on **5002**).
 
-- `machine-learning-client/src/tracker.py`: OpenCV + MediaPipe tracking loop
-- `machine-learning-client/src/gaze_math.py`: gaze feature extraction and simple calibration mapping
-- `web-app/app.py`: Flask API and page server
+##  Structure
+
+- `machine-learning-client/src/tracker.py`: Flask service for frame processing and Mongo inserts
+- `machine-learning-client/src/gaze_math.py`: landmarks → screen mapping, smoothing, calibration helpers
+- `web-app/app.py`: Flask routes (`/`, `/api/process_frame`, `/api/calibrate`, etc.)
 - `web-app/templates/index.html`: typing UI
-- `web-app/static/js/app.js`: gaze cursor + dwell logic + text entry + speech
-- `web-app/static/css/styles.css`: responsive interface styling
+- `web-app/static/js/app.js`: camera, calibration, gaze loop, dwell, phrases
+- `web-app/static/css/styles.css`: layout and keyboard styling
+- `docker-compose.yml`: MongoDB + web-app + ml-client
 
-## Quick Start
+## Team
 
-Start the web app first:
+- [Angelina Wu](https://github.com/TangelinaWu)
+- [Adam Shin](https://github.com/aus2005)
+- [Han Xiao](https://github.com/vick12333)
+- Alejandro
+- Wonden
+
+##  How to run
+
+### Docker Compose (recommended)
+
+```bash
+docker-compose up --build
+```
+
+Open the UI at [http://127.0.0.1:5001](http://127.0.0.1:5001). MongoDB is exposed on the host at `127.0.0.1:27017`. No seed data is required for a basic run.
+
+### Local (no Docker)
+
+MongoDB must be running if you want the ML client to persist gaze samples.
+
+Start the **web app** first (listens on **5000** by default):
 
 ```bash
 cd web-app
 pipenv install
+export ML_CLIENT_URL=http://127.0.0.1:5002/process
+export FLASK_HOST=127.0.0.1
 pipenv run python app.py
 ```
 
-Then start the ML client in another terminal:
+Then start the **machine learning client** in another terminal (listens on **5002**):
 
 ```bash
 cd machine-learning-client
 pipenv install
-pipenv run python src/tracker.py --api-url http://127.0.0.1:5000/api/gaze
+export MONGO_URI=mongodb://127.0.0.1:27017/
+pipenv run python src/tracker.py
 ```
 
 Open [http://127.0.0.1:5000](http://127.0.0.1:5000).
 
+**Environment variables (reference)**
+
+| Variable     | Used by              | Typical value (Compose)        |
+|-------------|----------------------|---------------------------------|
+| `ML_CLIENT_URL` | web-app          | `http://ml-client:5002/process` |
+| `MONGO_URI`     | machine-learning-client | `mongodb://mongodb:27017/` |
+| `FLASK_HOST`    | web-app          | `0.0.0.0` in containers       |
+
 ## MVP Coverage
 
-- Webcam feed
-- Eye landmark + iris tracking
-- Simple calibration
-- Large keyboard with dwell typing
-- Typed text box
-- Space / Backspace / Clear
-- Speak button
-- Quick phrases (nice-to-have starter)
+- Webcam feed and frame streaming to the ML service
+- Eye / iris landmarks and gaze estimation
+- Five-point calibration and gaze-to-screen mapping
+- Large on-screen keyboard with dwell typing (~0.9s)
+- Text entry, space / backspace / clear, quick phrases
+- Optional persistence of gaze metadata in MongoDB (`eyewrite_db.gaze_data`)
 
-Standup reports:
+**ML client tests**
 
-# Standup Report - 14 April 2026
+```bash
+cd machine-learning-client
+pipenv sync --dev && pipenv run pytest
+```
+
+Synthetic calibration check (no camera): `pipenv run python scripts/evaluate_calibration.py`
+
+Standup reports (full reports are posted to the team channel; below matches that layout):
+
+# Standup Report - 15 April 2026
 
 ## Adam Shin @aus2005
 - **did**: Web app and API integration; README and run instructions.
