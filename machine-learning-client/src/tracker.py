@@ -96,7 +96,7 @@ def _smooth_gaze(smoothing: Deque, estimated: ScreenPoint) -> Tuple[float, float
 
 
 @app.route("/process", methods=["POST"])
-def process():  # pylint: disable=too-many-return-statements
+def process():
     """Process a single frame and return the estimated gaze point."""
     data = request.json
     if not data or "image" not in data:
