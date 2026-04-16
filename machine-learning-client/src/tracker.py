@@ -145,12 +145,12 @@ def process():
 def calibrate():
     """Endpoint to add a new calibration sample for a specific target"""
     data = request.json
-    
+
     if data and data.get("reset"):
         state.calibrator = SimpleCalibrator()
         state.smoothing.clear()
         return jsonify({"status": "success"})
-    
+
     if not data or "image" not in data or "target" not in data:
         return jsonify({"error": "invalid data"}), 400
     try:

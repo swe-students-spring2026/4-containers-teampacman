@@ -46,24 +46,26 @@ def index():
     """Displays the page"""
     return render_template("index.html")
 
+
 @app.route("/dashboard")
 def dashboard():
     """Displays the dashboard"""
     gaze_data = []
     if gaze_collection is not None:
-        try: 
-            db_results =gaze_collection.find({}, {"_id": 0}).sort("timestamp", -1).limit(100)
+        try:
+            db_results = (
+                gaze_collection.find({}, {"_id": 0}).sort("timestamp", -1).limit(100)
+            )
             gaze_data = list(db_results)[::-1]
 
             for point in gaze_data:
-                dt_object = datetime.fromtimestamp(point['timestamp'])
-                point['readable_time'] = dt_object.strftime("%H:%M:%S")
+                dt_object = datetime.fromtimestamp(point["timestamp"])
+                point["readable_time"] = dt_object.strftime("%H:%M:%S")
 
         except PyMongoError as e:
             print(f"Error connecting to the database: {e}")
 
     return render_template("dashboard.html", gaze_data=gaze_data)
-
 
 
 @app.route("/api/process_frame", methods=["POST"])

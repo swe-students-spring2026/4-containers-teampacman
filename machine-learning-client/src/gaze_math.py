@@ -9,9 +9,15 @@ import numpy as np
 CALIBRATION_MIN_SAMPLES_PER_TARGET = 8
 
 CALIBRATION_ORDER: Tuple[str, ...] = (
-    "top_left", "top_center", "top_right",
-    "middle_left", "center", "middle_right",
-    "bottom_left", "bottom_center", "bottom_right",
+    "top_left",
+    "top_center",
+    "top_right",
+    "middle_left",
+    "center",
+    "middle_right",
+    "bottom_left",
+    "bottom_center",
+    "bottom_right",
 )
 
 LEFT_IRIS = [468, 469, 470, 471, 472]
@@ -153,7 +159,6 @@ class SimpleCalibrator:
             "bottom_center": ScreenPoint(0.50, 0.90),
             "bottom_right": ScreenPoint(0.92, 0.90),
         }
-
 
     def add_sample(self, key: str, point: FeaturePoint) -> None:
         """Record one gaze feature sample for the named calibration target."""
