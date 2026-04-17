@@ -92,7 +92,7 @@ Standup reports (full reports are posted to the team channel; below matches that
 
 # Standup Report - 15 April 2026
 
-## Adam Shin @aus2005
+## Adam Shin @aus2003
 - **did**: Web app and API integration; README and run instructions.
 - **doing**: Polish Flask UI and env defaults for local vs Docker.
 - **blockers**: None.
@@ -119,7 +119,7 @@ Standup reports (full reports are posted to the team channel; below matches that
 
 # Standup Report - 15 April 2026 Evening Meeting
 
-## Adam Shin @aus2005
+## Adam Shin @aus2003
 - **did**: Polished UI and env.
 - **doing**: Handle Linting Errors and github reversion issues.
 - **blockers**: None.
@@ -146,7 +146,7 @@ Standup reports (full reports are posted to the team channel; below matches that
 
 # Standup Report - 16 April 2026
 
-## Adam Shin @aus2005
+## Adam Shin @aus2003
 - **did**: Handled Linting Errors and github.
 - **doing**: Updating ReadMe.
 - **blockers**: None.
