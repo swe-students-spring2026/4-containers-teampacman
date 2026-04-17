@@ -5,6 +5,7 @@ from __future__ import annotations
 from unittest.mock import MagicMock, patch
 
 import requests
+from pymongo.errors import PyMongoError
 
 import app as app_module
 
@@ -94,3 +95,41 @@ def test_calibrate_request_exception_returns_500(mock_post, client):
     response = client.post("/api/calibrate", json={"image": "x", "target": 0})
     assert response.status_code == 500
     assert response.get_json()["error"] == "ML Service unavailable"
+
+
+def test_dashboard_renders_ok(client):
+    """Dashboard page loads when no DB connection exists."""
+    with patch("app.gaze_collection", None):
+        response = client.get("/dashboard")
+    assert response.status_code == 200
+    assert b"Gaze Data Dashboard" in response.data
+
+
+def test_dashboard_renders_with_gaze_data(client):
+    """Dashboard renders data rows when MongoDB returns gaze points."""
+    fake_points = [
+        {"x": 0.1, "y": 0.2, "timestamp": 1700000000.0},
+        {"x": 0.5, "y": 0.5, "timestamp": 1700000060.0},
+    ]
+    mock_collection = MagicMock()
+    mock_collection.find.return_value.sort.return_value.limit.return_value = fake_points
+
+    with patch("app.gaze_collection", mock_collection):
+        response = client.get("/dashboard")
+
+    assert response.status_code == 200
+    assert b"0.1" in response.data
+    assert b"0.5" in response.data
+
+
+def test_dashboard_handles_db_error(client):
+    """Dashboard returns 200 with empty table when MongoDB raises an error."""
+
+    mock_collection = MagicMock()
+    mock_collection.find.side_effect = PyMongoError("connection refused")
+
+    with patch("app.gaze_collection", mock_collection):
+        response = client.get("/dashboard")
+
+    assert response.status_code == 200
+    assert b"No data recorded yet" in response.data
