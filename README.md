@@ -26,7 +26,7 @@ All three parts are wired in `docker-compose.yml` (MongoDB, `web-app` on host po
 - [Adam Shin](https://github.com/aus2005)
 - [Han Xiao](https://github.com/vick12333)
 - [Alejandro Fiestas](https://github.com/avf8449)
-- Wonden
+- [Wonden Gyatso](https://github.com/wondeng)
 
 ##  How to run
 
