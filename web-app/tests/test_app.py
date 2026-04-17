@@ -5,9 +5,9 @@ from __future__ import annotations
 from unittest.mock import MagicMock, patch
 
 import requests
+from pymongo.errors import PyMongoError
 
 import app as app_module
-from pymongo.errors import PyMongoError
 
 
 def test_index_returns_ok(client):
